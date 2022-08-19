@@ -1,6 +1,7 @@
 package com.catalyst.billingapp.service;
 
 import com.catalyst.billingapp.dtos.requests.UserRequest;
+import com.catalyst.billingapp.dtos.responses.UserDto;
 import com.catalyst.billingapp.dtos.responses.UserResponse;
 import com.catalyst.billingapp.exceptions.CustomerServiceException;
 import com.catalyst.billingapp.models.BillingDetails;
@@ -11,11 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -23,6 +23,8 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private final UserRepository userRepository;
+
+    //ModelMapper mapper = new ModelMapper();
 
     @Override
     public UserResponse save(UserRequest request) {
@@ -80,21 +82,39 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteAll() {
-
+        userRepository.deleteAll();
     }
 
     @Override
     public long count() {
-        return 0;
+        return userRepository.count();
     }
 
     @Override
-    public User retrieveACustomerBy(String email) {
-        return null;
+    public UserDto retrieveACustomerBy(String email) {
+        User user = userRepository.findById(email).orElseThrow(() ->
+                new CustomerServiceException("This user does not exist"));
+        UserDto foundUser = new UserDto();
+        //mapper.map(user, foundUser);
+        foundUser.setFirstName(user.getFirstName());
+        foundUser.setLastName(user.getLastName());
+        foundUser.setBillingDetails(user.getBillingDetails());
+        return foundUser;
     }
 
     @Override
-    public List<User> retrieveAllCustomers() {
-        return null;
+    public List<UserDto> retrieveAllCustomers() {
+        List<User> users = userRepository.findAll();
+        List<UserDto> allUsers = new ArrayList<>();
+        UserDto aUserDTO = new UserDto();
+        for (User user : users) {
+            aUserDTO.setFirstName(user.getFirstName());
+            aUserDTO.setLastName(aUserDTO.getLastName());
+            aUserDTO.setBillingDetails(aUserDTO.getBillingDetails());
+            allUsers.add(aUserDTO);
+        }
+        return allUsers;
+
+
     }
 }
